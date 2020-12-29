@@ -8,6 +8,10 @@ import _thread
 import hmac
 import hashlib
 
+# File supplied to and adapted by Jacob Gilhaus for a final
+# project in CSE433 at Washington University in St. Louis with
+# Dr. Ning Zhang and Dr. Steve Cole
+
 try:
     from Crypto.Util.Padding import pad, unpad
 except ImportError:
