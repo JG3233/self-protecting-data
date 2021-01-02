@@ -1,6 +1,6 @@
 ## Usage instructions ##
 ***
-$ python ./file_encry.py
+$ python3 ./JG_spd.py
 
 Follow the instructions in the terminal and select one of the following options
 1. encrypt a file
