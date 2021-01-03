@@ -73,7 +73,7 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
     
     if anchlng < 0:
         if anchlng > -100:
-            anchlng = float("%07.4f"%anchlng)
+            anchlng = float("%07.4f"%anchlng) # TODO issue here with NYC length is 7
         else:
             anchlng = float("%07.3f"%anchlng)
     else:
@@ -107,17 +107,6 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
 
 # reverse the encrypt function, requires correct key or may throw error
 def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
-    # check location parameters before allowing access
-    # TODO update dummy values here!
-    latdist = loc.lat - 40
-    lngdist = loc.lng + 89
-
-    if latdist > 1 or latdist < -1 or lngdist > 1 or lngdist < -1:
-        print('Distance Violation!')
-        print(latdist)
-        print(lngdist)
-        return
-
     # if no new filename, add .dec
     if not out_filename:
         out_filename = in_filename + '.dec'
@@ -127,9 +116,24 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
         # take the filesize and iv first
         filesize = struct.unpack('<Q', infile.read(8))[0]
         iv = infile.read(16)
-        filelat = struct.unpack('<f', infile.read(4))
         filelng = struct.unpack('<f', infile.read(4))
+        filelat = struct.unpack('<f', infile.read(4))
         encryptor = AES.new(key, AES.MODE_CBC, iv)
+
+        print(float(filelat[0]), loc.lat)
+        print(float(filelng[0]), loc.lng)
+        # check distance before allowing access
+        latdist = loc.lat - filelat[0]
+        lngdist = loc.lng - filelng[0]
+
+        #TODO update distance requirement from 1 degree
+        if latdist > 1 or latdist < -1 or lngdist > 1 or lngdist < -1:
+            print('Distance Violation!')
+            print(latdist)
+            print(lngdist)
+            return
+
+        # conditions satisfied, decrypt
         with open(out_filename, 'wb') as outfile:
             encrypted_filesize = os.path.getsize(in_filename)
             # the filesize, IV, lng, and lat metadata
