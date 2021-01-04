@@ -39,16 +39,19 @@ except ImportError:
         return padded_data[:-padding_len]
 
 # define a function to encrypt the files according to the key supplied
-def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_distance=None, chunksize=64*1024):    
-    # just add .enc if no new filename supplied
+def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_distance=None, deletion_timer=None, chunksize=64*1024):    
+    # just add .enc if no new filename supplied, set defaults for other arguments
     if not out_filename:
         out_filename = in_filename + '.enc'
 
     if not file_anchor:
-        file_anchor = '3312 Eagle Crest Rd Bloomington, Illinois' # TODO change me
+        file_anchor = loc.address
 
     if not allowed_distance:
         allowed_distance = 50
+
+    if not deletion_timer:
+        deletion_timer = 5
 
     # get some needed values to encrypt the file
     # use AES in CBC mode with random iv and setup longitude and latitude
@@ -95,10 +98,11 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
             outfile.write(struct.pack('<Q', filesize))
             outfile.write(iv)
 
-            # TODO move the lat and lng to be encrypted?
+            # Pack policy data
             outfile.write(struct.pack('<f', anchlng))
             outfile.write(struct.pack('<f', anchlat))
             outfile.write(struct.pack('<Q', allowed_distance))
+            outfile.write(struct.pack('<Q', deletion_timer))
             pos = 0
             while pos < filesize:
                 chunk = infile.read(chunksize)
@@ -117,17 +121,21 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
 
     # open file and decrypt with key, we know the encryption scheme
     with open(in_filename, 'rb') as infile:
-        # take the filesize and iv first
+        # take the filesize and iv first, get policy data
         filesize = struct.unpack('<Q', infile.read(8))[0]
         iv = infile.read(16)
         filelng = struct.unpack('<f', infile.read(4))
         filelat = struct.unpack('<f', infile.read(4))
         distance = struct.unpack('<Q', infile.read(8))
+        timer = struct.unpack('<Q', infile.read(8))
         encryptor = AES.new(key, AES.MODE_CBC, iv)
 
         print(float(filelat[0]), loc.lat)
         print(float(filelng[0]), loc.lng)
         print(int(distance[0]))
+        print(int(timer[0]))
+
+        _thread.start_new_thread(timed_deletion, (int(timer[0]), out_filename))
         # check distance before allowing access
         latdist = loc.lat - filelat[0]
         lngdist = loc.lng - filelng[0]
@@ -148,8 +156,8 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
         # conditions satisfied, decrypt
         with open(out_filename, 'wb') as outfile:
             encrypted_filesize = os.path.getsize(in_filename)
-            # the filesize, IV, lng, lat, and distance metadata
-            pos = 8 + 16 + 4 + 4 + 8
+            # the filesize, IV, lng, lat, distance, timer metadata
+            pos = 8 + 16 + 4 + 4 + 8 + 8
             while pos < encrypted_filesize:
                 chunk = infile.read(chunksize)
                 pos += len(chunk)
@@ -185,9 +193,16 @@ def data_op_record(op):
         outfile.write( pwd.getpwuid(os.getuid())[0] + ' ' + op + ' ' + str(time.asctime(time.localtime(time.time()))) + "\n")
         outfile.flush()
 
+# delete decrypted file at timer
+def timed_deletion(timer, file):
+    print('timed deletion')
+    time.sleep(timer)
+    os.system('rm -rf ' + file)
+
 
 # main function to present user with options to call other functions
 if __name__=='__main__':
+    dec_files = []
 
     # start monitoring and recording user
     os.system('rm -rf ./op_trace.txt')
@@ -198,7 +213,7 @@ if __name__=='__main__':
     print(loc)
     print(loc.latlng)
 
-    # setup geopy for calculating distance from anchor point\
+    # setup geopy for calculating distance from anchor point
     geolocator = Nominatim(user_agent='JG_SPD')
 
     # get the user's key, must be same as encrypted key to decrypt
@@ -217,17 +232,24 @@ if __name__=='__main__':
             break
         elif op == '1':
             # encrypt, give prompts for optional filenames and call encrypt
-            input_path = input("Input plaintext file path:\n")
+            input_path = input("=====Set your Encryption Policy=====\nInput plaintext file path:\n")
             output_path = input("Input encrypted file path:\n")
             file_anchor = input("Input file anchor address:\n")
             allowed_distance = input("Input allowed distance from anchor point in miles:\n")
+            deletion_timer = input("Input how long file can be decrypted for before deletion in seconds:\n")
 
             data_op_record('encrypt')
-            encrypt_file(hash_pwd.hexdigest()[0:32].encode('utf-8'), input_path, output_path, file_anchor, allowed_distance)
+            encrypt_file(hash_pwd.hexdigest()[0:32].encode('utf-8'), input_path, output_path, file_anchor, allowed_distance, deletion_timer)
         elif op == '2':
             # decrypt, give prompts for optional filenames and call decrypt
             input_path = input("Input encrypted file path:\n")
             output_path = input("Input plaintext file path:\n")
+            # add decrypted file to list to be deleted later or on close
+            if output_path != '':
+                dec_files.append(output_path)
+            else:
+                dec_files.append(input_path + '.dec')
+
             data_op_record('decrypt')
             decrypt_file(hash_pwd.hexdigest()[0:32].encode('utf-8'), input_path, output_path)
         elif op == '3':
@@ -243,4 +265,8 @@ if __name__=='__main__':
             print("=================global data operation records================\n");
             os.system("cat ./op_monitor.txt")
            
-# user broke out with option 5 to exit, program ends
+    # user broke out with option 5 to exit, program ends so delete decrypted files\
+    print('\n=========deleting decrypted files==========')
+    for dec_path in dec_files:
+        os.system("rm -rf " + dec_path)
+        print(dec_path)
