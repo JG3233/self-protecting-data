@@ -39,13 +39,16 @@ except ImportError:
         return padded_data[:-padding_len]
 
 # define a function to encrypt the files according to the key supplied
-def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_distance=50, chunksize=64*1024):    
+def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_distance=None, chunksize=64*1024):    
     # just add .enc if no new filename supplied
     if not out_filename:
         out_filename = in_filename + '.enc'
 
     if not file_anchor:
-        file_anchor = '3312 Eagle Crest Rd Bloomington, Illinois'
+        file_anchor = '3312 Eagle Crest Rd Bloomington, Illinois' # TODO change me
+
+    if not allowed_distance:
+        allowed_distance = 50
 
     # get some needed values to encrypt the file
     # use AES in CBC mode with random iv and setup longitude and latitude
@@ -73,7 +76,7 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
     
     if anchlng < 0:
         if anchlng > -100:
-            anchlng = float("%07.4f"%anchlng) # TODO issue here with NYC length is 7
+            anchlng = float("%07.4f"%anchlng)
         else:
             anchlng = float("%07.3f"%anchlng)
     else:
@@ -95,6 +98,7 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
             # TODO move the lat and lng to be encrypted?
             outfile.write(struct.pack('<f', anchlng))
             outfile.write(struct.pack('<f', anchlat))
+            outfile.write(struct.pack('<Q', allowed_distance))
             pos = 0
             while pos < filesize:
                 chunk = infile.read(chunksize)
@@ -118,26 +122,34 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
         iv = infile.read(16)
         filelng = struct.unpack('<f', infile.read(4))
         filelat = struct.unpack('<f', infile.read(4))
+        distance = struct.unpack('<Q', infile.read(8))
         encryptor = AES.new(key, AES.MODE_CBC, iv)
 
         print(float(filelat[0]), loc.lat)
         print(float(filelng[0]), loc.lng)
+        print(int(distance[0]))
         # check distance before allowing access
         latdist = loc.lat - filelat[0]
         lngdist = loc.lng - filelng[0]
 
+        filecoords = (filelat[0], filelng[0])
+        curcoords = (loc.lat, loc.lng)
+
+        measureddist = geodesic(filecoords, curcoords).miles
+        print('distance', measureddist)
+
         #TODO update distance requirement from 1 degree
-        if latdist > 1 or latdist < -1 or lngdist > 1 or lngdist < -1:
+        if measureddist > distance[0]:
             print('Distance Violation!')
-            print(latdist)
-            print(lngdist)
+            print('allowed', distance[0])
+            print('measured', measureddist)
             return
 
         # conditions satisfied, decrypt
         with open(out_filename, 'wb') as outfile:
             encrypted_filesize = os.path.getsize(in_filename)
-            # the filesize, IV, lng, and lat metadata
-            pos = 8 + 16 + 4 + 4
+            # the filesize, IV, lng, lat, and distance metadata
+            pos = 8 + 16 + 4 + 4 + 8
             while pos < encrypted_filesize:
                 chunk = infile.read(chunksize)
                 pos += len(chunk)
