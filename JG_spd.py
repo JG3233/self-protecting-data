@@ -102,7 +102,7 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
             outfile.write(struct.pack('<f', anchlng))
             outfile.write(struct.pack('<f', anchlat))
             outfile.write(struct.pack('<Q', allowed_distance))
-            outfile.write(struct.pack('<Q', deletion_timer))
+            outfile.write(struct.pack('<Q', int(deletion_timer)))
             pos = 0
             while pos < filesize:
                 chunk = infile.read(chunksize)
