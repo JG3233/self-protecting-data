@@ -54,7 +54,7 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
         allowed_distance = 50
 
     if not deletion_timer:
-        deletion_timer = 5
+        deletion_timer = 60
 
     if not self_dest:
         self_dest = True
@@ -249,13 +249,21 @@ if __name__=='__main__':
     passwd = getpass.getpass("input your key:\n")
     hash_pwd = SHA256.new()
     hash_pwd.update(bytes(passwd, encoding = "utf-8"))
+
+    # start thread for logs and create files
     _thread.start_new_thread(data_op_monitor,(5,))
+    open('op_trace.txt', 'a+')
+    open('op_monitor.txt', 'a+')
 
     # give user choices to encrypt, decrypt, remove, show logs, or quit
     while True:
         op = input("\nChoose your operation:\n1. encrypt a file\n2. decrypt a file\n3. remove a file\n4. dumplog\n5. exit\n -> ")
         if op == '5':
-            # user quit, get hmac and break
+            # user quit, print logs, get hmac, and break
+            print("====================data operation records====================\n");
+            os.system("cat ./op_trace.txt")
+            print("=================global data operation records================\n");
+            os.system("cat ./op_monitor.txt")
             cal_hmac(hash_pwd.hexdigest().encode('utf-8'), 'op_trace.txt')
             cal_hmac(hash_pwd.hexdigest().encode('utf-8'), 'op_monitor.txt')
             break
@@ -295,8 +303,8 @@ if __name__=='__main__':
             print("=================global data operation records================\n");
             os.system("cat ./op_monitor.txt")
            
-    # user broke out with option 5 to exit, program ends so delete decrypted files\
-    print('\n=========deleting decrypted files==========')
+    # user broke out with option 5 to exit, program ends so delete decrypted files
+    print('\n===================deleting decrypted files===================')
     for dec_path in dec_files:
         os.system("rm -rf " + dec_path)
         print(dec_path)
