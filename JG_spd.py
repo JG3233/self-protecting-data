@@ -78,28 +78,28 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
     anchlng = float(file_anchor.longitude)
     
     # maintain digits for offset in packing
-    if anchlat < 0:
-        if anchlat > -100:
-            anchlat = float("%07.4f"%anchlat)
-        else:
-            anchlat = float("%07.3f"%anchlat)
-    else:
-        if anchlat < 100:
-            anchlat = float("%07.5f"%anchlat)
-        else:
-            anchlat = float("%07.4f"%anchlat)
+    # if anchlat < 0:
+    #     if anchlat > -100:
+    #         anchlat = float("%07.4f"%anchlat)
+    #     else:
+    #         anchlat = float("%07.3f"%anchlat)
+    # else:
+    #     if anchlat < 100:
+    #         anchlat = float("%07.5f"%anchlat)
+    #     else:
+    #         anchlat = float("%07.4f"%anchlat)
 
     
-    if anchlng < 0:
-        if anchlng > -100:
-            anchlng = float("%07.4f"%anchlng)
-        else:
-            anchlng = float("%07.3f"%anchlng)
-    else:
-        if anchlng < 100:
-            anchlng = float("%07.5f"%anchlng)
-        else:
-            anchlng = float("%07.4f"%anchlng)
+    # if anchlng < 0:
+    #     if anchlng > -100:
+    #         anchlng = float("%07.4f"%anchlng)
+    #     else:
+    #         anchlng = float("%07.3f"%anchlng)
+    # else:
+    #     if anchlng < 100:
+    #         anchlng = float("%07.5f"%anchlng)
+    #     else:
+    #         anchlng = float("%07.4f"%anchlng)
 
     # print(anchlng, anchlat)
     # print(len(struct.pack('<f', anchlng)), len(struct.pack('<f', anchlat)))
@@ -164,8 +164,8 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
 
         if measureddist > distance[0]:
             print('Distance Violation!')
-            print('allowed', distance[0])
-            print('measured', measureddist)
+            # print('allowed', distance[0])
+            # print('measured', measureddist)
             return
 
         # conditions satisfied, decrypt
@@ -196,6 +196,8 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
                         if destruct[0] == True:
                             os.system('rm -rf ' + in_filename)
                         print('!!!DECRYPTION ERROR!!!')
+                else:
+                    outfile.write(chunk)
 
 
 # a function to calculate an hmac, used on exit with monitor and record
