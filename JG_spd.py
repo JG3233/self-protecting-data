@@ -223,7 +223,7 @@ if __name__=='__main__':
 
     # give user choices to encrypt, decrypt, remove, show logs, or quit
     while True:
-        op = input("\nChoose your operation:\n1. encrypt a file\n2. decrypt a file\n3. remove a file\n4. dumplog\n5. exit\n -> ")
+        op = input("\nChoose your operation:\n1. encrypt a file\n2. decrypt a file\n3. remove a file\n4. dump logs\n5. exit\n -> ")
         if op == '5':
             # user quit, print logs, get hmac, and break
             print("====================data operation records====================\n");
