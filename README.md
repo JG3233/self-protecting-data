@@ -44,18 +44,20 @@ This programs serves as a proof of concept and displays knowledge of how a self-
 - Additionally, now the encrypted file is ready to be shared. The file can be sent over a medium like email. or simply exit the program and restart it to replicate the same behavior on the same machine
     - The intended recipient (or the same user in a newly started program) will repeat the first steps from above, inputting the correct key
     - Now input the path to the encrypted file and give a name for the decrypted file, defaults to adding '.dec'   
-    - **If successful, both the encrypted and decrypted files will be avialable and a message showing success will print. (The decrypted message will delete itself after the set amount of time)**
+    - **If successful, both the encrypted and decrypted files will be available and a message showing success will print (The decrypted message will delete itself after the set amount of time)**
     - **In an unsuccessful case, a message will indicate failure, no decrypted file will exist, and the encrypted file may self-destruct depending on the protection policy**
     - **Also note that any decrypted files will be deleted on program exit as an added security measure**
 
-- The program also allows for deleting files, showing activity logs for the current session, and exitting the program (options 3, 4, and 5), all of which are relatively straightforward
+- The program also allows for deleting files, showing activity logs for the current session, and exiting the program (options 3, 4, and 5), all of which are relatively straightforward
 
 
 ## Shortcomings and Potential Future Improvements ##
 Lastly, as this program is an example put together in a compressed timeframe, there are some shortcomings that are at least of note:
-- The policy packing method may not be the most secure. Other implementations use a nested encryption strategy so all data in decrypted one piece of the policy at a time until finally the underlying data
+- The policy packing method may not be the most secure. Other implementations use a nested encryption strategy so all data is decrypted one piece of the policy at a time until eventually reaching the underlying data
 - The geolocation is imperfect and uses Python libraries that may be easily skirted with a proxy or another similar strategy
 - Key passing could prove an issue, one that threatens to remove security altogether for the sake of convenience if the keys are publicized or used widely
+- The permissions management leaves some security to be desired
+    - Late in development I discovered that by renaming the decrypted file it would never be deleted, which defeats a primary purpose of SPD -> multi-hop security
 
 ### Improvements and Wish List ###
 - Improve policy packing security to avoid malicious actors discovering anchor point and other sensitive policy data
@@ -66,6 +68,7 @@ Lastly, as this program is an example put together in a compressed timeframe, th
 - More closely mirror actual implementation with each SPD object as a filesystem instead of a file
 - Send logs back to server/owner on exit
 - Improve error detection and maintain more secure hold of decrypted data
+- Patch the renaming vulnerability for decrypted files (and others like it)
 
 # Program Logs #
 The operation record and HMAC is stored in ./op_trace.txt   

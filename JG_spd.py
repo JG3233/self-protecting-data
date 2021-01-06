@@ -1,5 +1,5 @@
 import os, random, struct
-from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWRITE, S_IEXEC, SF_IMMUTABLE, SF_NOUNLINK
+from stat import S_IREAD
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from geopy.geocoders import Nominatim
@@ -155,7 +155,7 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
                         chunk = unpad(chunk, AES.block_size)
                         outfile.write(chunk)
                         # change permissions so data isn't tampered with
-                        os.chmod(out_filename, S_IREAD | SF_IMMUTABLE | SF_NOUNLINK)
+                        os.chmod(out_filename, S_IREAD)
                         print("Decryption Successful!")
                     except ValueError:
                         os.system('rm -rf ' + out_filename)
