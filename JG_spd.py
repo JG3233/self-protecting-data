@@ -1,4 +1,5 @@
 import os, random, struct
+from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWRITE, S_IEXEC, SF_IMMUTABLE, SF_NOUNLINK
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from geopy.geocoders import Nominatim
@@ -71,38 +72,10 @@ def encrypt_file(key, in_filename, out_filename=None, file_anchor=None, allowed_
     iv = os.urandom(16)
     encryptor = AES.new(key, AES.MODE_CBC, iv)
     filesize = os.path.getsize(in_filename)
-    # print(file_anchor)
     file_anchor = geolocator.geocode(file_anchor)
-    print(file_anchor)
+    print('Anchor point: ', file_anchor)
     anchlat = float(file_anchor.latitude)
     anchlng = float(file_anchor.longitude)
-    
-    # maintain digits for offset in packing
-    # if anchlat < 0:
-    #     if anchlat > -100:
-    #         anchlat = float("%07.4f"%anchlat)
-    #     else:
-    #         anchlat = float("%07.3f"%anchlat)
-    # else:
-    #     if anchlat < 100:
-    #         anchlat = float("%07.5f"%anchlat)
-    #     else:
-    #         anchlat = float("%07.4f"%anchlat)
-
-    
-    # if anchlng < 0:
-    #     if anchlng > -100:
-    #         anchlng = float("%07.4f"%anchlng)
-    #     else:
-    #         anchlng = float("%07.3f"%anchlng)
-    # else:
-    #     if anchlng < 100:
-    #         anchlng = float("%07.5f"%anchlng)
-    #     else:
-    #         anchlng = float("%07.4f"%anchlng)
-
-    # print(anchlng, anchlat)
-    # print(len(struct.pack('<f', anchlng)), len(struct.pack('<f', anchlat)))
 
     # write the encrypted file with filesize and iv first
     # encrypt chunks at a time at the end of the write loop
@@ -145,12 +118,6 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
         destruct = struct.unpack('<?', infile.read(1))
         encryptor = AES.new(key, AES.MODE_CBC, iv)
 
-        # print(float(filelat[0]), loc.lat)
-        # print(float(filelng[0]), loc.lng)
-        # print(int(distance[0]))
-        # print(int(timer[0]))
-        # print(destruct[0])
-
         _thread.start_new_thread(timed_deletion, (int(timer[0]), out_filename))
         # check distance before allowing access
         latdist = loc.lat - filelat[0]
@@ -160,12 +127,9 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
         curcoords = (loc.lat, loc.lng)
 
         measureddist = geodesic(filecoords, curcoords).miles
-        # print('distance', measureddist)
 
         if measureddist > distance[0]:
             print('Distance Violation!')
-            # print('allowed', distance[0])
-            # print('measured', measureddist)
             return
 
         # conditions satisfied, decrypt
@@ -189,7 +153,9 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
                 if pos == encrypted_filesize:
                     try:
                         chunk = unpad(chunk, AES.block_size)
-                        outfile.write(chunk) 
+                        outfile.write(chunk)
+                        # change permissions so data isn't tampered with
+                        os.chmod(out_filename, S_IREAD | SF_IMMUTABLE | SF_NOUNLINK)
                         print("Decryption Successful!")
                     except ValueError:
                         os.system('rm -rf ' + out_filename)
@@ -241,8 +207,6 @@ if __name__=='__main__':
 
     # get users location for geosense and geofence
     loc = geocoder.ip('me')
-    # print(loc)
-    # print(loc.latlng)
 
     # setup geopy for calculating distance from anchor point
     geolocator = Nominatim(user_agent='JG_SPD')
