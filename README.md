@@ -9,7 +9,7 @@ Follow the instructions in the terminal and select one of the following options
 5. exit
 
 # Program Description #
-This program is a simple example of the functionality of self-protecting data. As this program is supplemented by a full writeup, I will save the details for that document and provide a brief description and explanation of functionality here.
+This program is a simple example of the functionality of self-protecting data. As this program is supplemented by a full writeup, I will save some details and further discussion for that document and provide a program description, explanation of functionality, and some reflection here.
 
 ## Self-Protecting Data Background ##
 Self-protecting data is a recent revelation in the security industry focused on maintaining the security of sensitive files throughtout the full lifecycle of the data. SPD represents a move away from a responsive defense strategy to one that more proactively secures the underlying data. For example, instead of simply encrypting the data, a useful but less flexible defense measure, SPD can encompass a full suite of features via a protection policy. Some examples include:
@@ -60,11 +60,12 @@ Lastly, as this program is an example put together in a compressed timeframe, th
 ### Improvements and Wish List ###
 - Improve policy packing security to avoid malicious actors discovering anchor point and other sensitive policy data
 - Allow a full suite of defaults to be established for the entire company or even a subset of related files
-- Established improved key management (PKI)
-- Add user clearance levels to allow different amounts of data to be decrypted based on user
+- Establish improved key management and utilize multiple keys (PKI)
+- Add user clearance levels to allow different amounts of data to be decrypted based on the user
 - Potentially utilize check-in server to verify location and authentication more concretely
 - More closely mirror actual implementation with each SPD object as a filesystem instead of a file
 - Send logs back to server/owner on exit
+- Improve error detection and maintain more secure hold of decrypted data
 
 # Program Logs #
 The operation record and HMAC is stored in ./op_trace.txt   
