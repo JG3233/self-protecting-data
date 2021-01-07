@@ -30,7 +30,7 @@ Clearly SPD is a more complex but much more flexible solution to protecting data
 This programs serves as a proof of concept and displays knowledge of how a self-protecting data platform could function, albeit with less functionality and more limited security than a full-fledged consumer product. The basic structure and functionality is as follows:
 
 - Run the program as shown in the usage section above
-    - The terminal will first ask for a key which functions as the encryption key and adds a password- protected nature to the data, ideally communicated out of band.
+    - The terminal will first ask for a key which functions as the encryption key and adds a password-protected nature to the data, ideally communicated out of band.
     - Then the terminal will display a number of options
 - First, a user will likely want to encrypt a file with option 1
     - After typing '1' and hitting enter, the program will ask the user to set the policy for the encrypted file. This is necessary at this point so the policy data can be packaged into the encrypted file and accessed accordingly on an attempt to decrypt. Leaving options blank will use the default value. The options are (in order):
@@ -44,7 +44,7 @@ This programs serves as a proof of concept and displays knowledge of how a self-
         - Choose whether or not the file should self-destruct on a failed decryption attempt, another version of the encrypted file can always be sent if the key is mistyped
 
 - Now that the file is encrypted with a corresponding protection policy, the user can immediately decrypt the file with option 2 to verify correct decryption
-- Additionally, now the encrypted file is ready to be shared. The file can be sent over a medium like email. or simply exit the program and restart it to replicate the same behavior on the same machine
+- Additionally, now the encrypted file is ready to be shared. The file can be sent over a medium like email, or simply exit the program and restart it to replicate the same behavior on the same machine
     - The intended recipient (or the same user in a newly started program) will repeat the first steps from above, inputting the correct key
     - Now input the path to the encrypted file and give a name for the decrypted file, defaults to adding '.dec'   
     - **If successful, both the encrypted and decrypted files will be available and a message showing success will print (The decrypted message will delete itself after the set amount of time)**
