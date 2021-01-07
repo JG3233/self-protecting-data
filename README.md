@@ -1,4 +1,7 @@
+*There is a walkthrough video in the repo accompanying this project that may be helpful to start with.*   
+
 # Usage #
+
 $ python3 JG_spd.py
 
 Follow the instructions in the terminal and select one of the following options
